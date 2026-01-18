@@ -92,6 +92,7 @@ src/
 - El merge de `develop` a `main` es responsabilidad del usuario
 - Commits descriptivos en espanol
 
+
 ## Convenciones de Codigo
 
 - **TypeScript strict** habilitado
