@@ -14,6 +14,13 @@ import {
   createPresupuestoRoutes,
   createTransaccionRoutes,
 } from './api/routes';
+import {
+  createActuatorRoutes,
+  createPostgresHealthChecker,
+  createRedisHealthChecker,
+  createEventStoreHealthChecker,
+  createMemoryHealthChecker,
+} from './api/actuator';
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -35,15 +42,30 @@ async function main(): Promise<void> {
   const presupuestoHandler = new PresupuestoCommandHandler(presupuestoRepository);
   const transaccionHandler = new TransaccionCommandHandler(transaccionRepository);
 
+  // Configurar health checkers
+  const healthCheckers = {
+    postgres: createPostgresHealthChecker({
+      host: config.postgres.host,
+      port: config.postgres.port,
+    }),
+    redis: createRedisHealthChecker({
+      host: config.redis.host,
+      port: config.redis.port,
+    }),
+    eventstore: createEventStoreHealthChecker({
+      host: config.eventstore.host,
+      port: config.eventstore.port,
+    }),
+    memory: createMemoryHealthChecker(90),
+  };
+
   // Configurar Express
   const app = express();
 
   app.use(express.json());
 
-  // Health check
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
+  // Actuator endpoints (health, info, metrics, ready, live)
+  app.use('/actuator', createActuatorRoutes({ healthCheckers }));
 
   // Rutas API
   app.use('/api/v1/familias', createFamiliaRoutes(familiaHandler));

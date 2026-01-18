@@ -1,0 +1,34 @@
+# Override para desarrollo local
+# Se aplica automaticamente con docker-compose up
+
+services:
+  app:
+    build:
+      context: .
+      target: builder
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: walletwise
+      POSTGRES_PASSWORD: walletwise_secret
+      POSTGRES_DB: walletwise
+      EVENTSTORE_HOST: eventstore
+      EVENTSTORE_PORT: 2113
+      EVENTSTORE_INSECURE: "true"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eventstore:
+        condition: service_healthy
